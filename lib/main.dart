@@ -163,42 +163,37 @@ class _MyAppState extends State<MyApp> {
         final light = primaryOverride != null ? baseLight.copyWith(primary: primaryOverride) : baseLight;
         final dark = primaryOverride != null ? baseDark.copyWith(primary: primaryOverride) : baseDark;
 
+
         return MaterialApp(
           debugShowCheckedModeBanner: false,
           title: 'Material You Demo',
           theme: ThemeData(colorScheme: light, useMaterial3: true),
           darkTheme: ThemeData(colorScheme: dark, useMaterial3: true),
           themeMode: isDarkMode ? ThemeMode.dark : ThemeMode.light,
-          home: HomeScreen(
-            onToggleDynamic: toggleUseDynamic,
-            onRandomSeed: randomizeSeed,
-            onSetSeed: setSeed,
-            onApplyAsPrimary: applyAsPrimary,
-            isUsingDynamic: useDynamic,
-            currentSeed: seed,
-            goToPreview: () => Navigator.of(context).push(MaterialPageRoute(builder: (_) => const PreviewScreen())),
-            goToDashboard: () {
-              // debug wrapper around Navigator push so we can see logs & catch errors
-              debugPrint('>>> goToDashboard called');
-              try {
-                Navigator.of(context).push(
-                  MaterialPageRoute(builder: (_) => const DashboardScreen()),
-                );
-                debugPrint('>>> Navigator.push executed');
-              } catch (e, st) {
-                debugPrint('>>> Navigator.push error: $e');
-                debugPrint('$st');
-              }
-            },
-            onClearPrimaryOverride: clearPrimaryOverride,
-            isDarkMode: isDarkMode,
-            onToggleDarkMode: toggleDarkMode,
-            presets: presets,
-            onSavePreset: addPreset,
-            onRemovePreset: (color) => removePreset(_toARGB32(color).toRadixString(16).padLeft(8, '0').toUpperCase()),
-            autoApplyOnTap: autoApplyOnTap,
-            onToggleAutoApply: toggleAutoApply,
-          ),
+          // Define routes
+          routes: {
+            '/': (context) => HomeScreen(
+              onToggleDynamic: toggleUseDynamic,
+              onRandomSeed: randomizeSeed,
+              onSetSeed: setSeed,
+              onApplyAsPrimary: applyAsPrimary,
+              isUsingDynamic: useDynamic,
+              currentSeed: seed,
+              goToPreview: () => Navigator.of(context).push(MaterialPageRoute(builder: (_) => const PreviewScreen())),
+              goToDashboard: () => Navigator.of(context).pushNamed('/dashboard'),
+              onClearPrimaryOverride: clearPrimaryOverride,
+              isDarkMode: isDarkMode,
+              onToggleDarkMode: toggleDarkMode,
+              presets: presets,
+              onSavePreset: addPreset,
+              onRemovePreset: (color) => removePreset(_toARGB32(color).toRadixString(16).padLeft(8, '0').toUpperCase()),
+              autoApplyOnTap: autoApplyOnTap,
+              onToggleAutoApply: toggleAutoApply,
+            ),
+            '/dashboard': (context) => const DashboardScreen(),
+            '/preview': (context) => const PreviewScreen(),
+          },
+          initialRoute: '/',
         );
       },
     );

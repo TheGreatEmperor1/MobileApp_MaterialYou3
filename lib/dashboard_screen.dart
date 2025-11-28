@@ -51,8 +51,8 @@ class _DashboardScreenState extends State<DashboardScreen> {
   @override
   Widget build(BuildContext context) {
     final cs = Theme.of(context).colorScheme;
-    final textStyleLarge = TextStyle(color: cs.onBackground, fontSize: 32, fontWeight: FontWeight.w600);
-    final textStyleSmall = TextStyle(color: cs.onBackground.withAlpha((0.7 * 255).round()));
+    final textStyleLarge = TextStyle(color: cs.onSurface, fontSize: 48, fontWeight: FontWeight.w700);
+    final textStyleSmall = TextStyle(color: cs.onSurface.withAlpha((0.7 * 255).round()), fontSize: 16);
 
     // Gunakan asset SVG yang sudah kamu letakkan di assets/icons/
     final apps = <Map<String, String>>[
@@ -64,107 +64,144 @@ class _DashboardScreenState extends State<DashboardScreen> {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Dashboard'),
+        title: const Text('Dashboard Material You'),
         backgroundColor: cs.primary,
         foregroundColor: cs.onPrimary,
         centerTitle: true,
+        elevation: 0,
       ),
       body: SafeArea(
-        child: Padding(
-          padding: const EdgeInsets.fromLTRB(16, 18, 16, 12),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              // jam + tanggal
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                    Text(_timeString, style: textStyleLarge),
-                    const SizedBox(height: 4),
-                    Text(_dateString, style: textStyleSmall),
-                  ]),
-                  IconButton(
-                    onPressed: () {
-                      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Quick action')));
-                    },
-                    icon: Icon(Icons.info_outline, color: cs.onBackground),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 16),
-
-              // Google search bar
-              Material(
-                color: cs.surface,
-                borderRadius: BorderRadius.circular(12),
-                child: TextField(
-                  controller: _searchController,
-                  onSubmitted: (q) {
-                    _searchGoogle(q);
-                    _searchController.clear();
-                  },
-                  textInputAction: TextInputAction.search,
-                  decoration: InputDecoration(
-                    hintText: 'Search Google',
-                    prefixIcon: Icon(Icons.search, color: cs.onSurface),
-                    suffixIcon: _searchController.text.isEmpty
-                        ? null
-                        : IconButton(
-                            icon: Icon(Icons.close, color: cs.onSurface),
-                            onPressed: () => setState(() => _searchController.clear()),
-                          ),
-                    border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide.none),
-                    contentPadding: const EdgeInsets.symmetric(vertical: 14),
+        child: SingleChildScrollView(
+          child: Padding(
+            padding: const EdgeInsets.all(20),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                // Card untuk jam + tanggal
+                Card(
+                  elevation: 2,
+                  color: cs.primaryContainer,
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                  child: Container(
+                    width: double.infinity,
+                    padding: const EdgeInsets.all(24),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(_timeString, style: textStyleLarge),
+                        const SizedBox(height: 8),
+                        Text(_dateString, style: textStyleSmall),
+                      ],
+                    ),
                   ),
                 ),
-              ),
-              const SizedBox(height: 18),
+                const SizedBox(height: 24),
 
-              // Apps grid
-              Text('Apps', style: TextStyle(color: cs.onBackground, fontWeight: FontWeight.w600)),
-              const SizedBox(height: 8),
-              Expanded(
-                child: GridView.builder(
+                // Google search bar
+                Material(
+                  elevation: 1,
+                  color: cs.surface,
+                  borderRadius: BorderRadius.circular(28),
+                  child: TextField(
+                    controller: _searchController,
+                    onSubmitted: (q) {
+                      _searchGoogle(q);
+                      _searchController.clear();
+                    },
+                    textInputAction: TextInputAction.search,
+                    decoration: InputDecoration(
+                      hintText: 'Search Google',
+                      prefixIcon: Icon(Icons.search, color: cs.onSurface),
+                      suffixIcon: _searchController.text.isEmpty
+                          ? null
+                          : IconButton(
+                              icon: Icon(Icons.close, color: cs.onSurface),
+                              onPressed: () => setState(() => _searchController.clear()),
+                            ),
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(28),
+                        borderSide: BorderSide.none,
+                      ),
+                      filled: true,
+                      fillColor: cs.surface,
+                      contentPadding: const EdgeInsets.symmetric(vertical: 16, horizontal: 20),
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 32),
+
+                // Apps section header
+                Text(
+                  'Quick Apps',
+                  style: TextStyle(
+                    color: cs.onSurface,
+                    fontWeight: FontWeight.w700,
+                    fontSize: 20,
+                  ),
+                ),
+                const SizedBox(height: 16),
+
+                // Apps grid
+                GridView.builder(
+                  shrinkWrap: true,
+                  physics: const NeverScrollableScrollPhysics(),
                   itemCount: apps.length,
                   gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
                     crossAxisCount: 4,
-                    crossAxisSpacing: 12,
-                    mainAxisSpacing: 12,
-                    childAspectRatio: 0.8,
+                    crossAxisSpacing: 16,
+                    mainAxisSpacing: 16,
+                    childAspectRatio: 0.85,
                   ),
                   itemBuilder: (context, i) {
                     final app = apps[i];
                     final asset = app['asset']!;
-                    return GestureDetector(
-                      onTap: () => _openAppSearch(app['name']!),
+                    return InkWell(
+                      onTap: () {
+                        _openAppSearch(app['name']!);
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(
+                            content: Text('Opening ${app['name']}...'),
+                            duration: const Duration(seconds: 1),
+                          ),
+                        );
+                      },
+                      borderRadius: BorderRadius.circular(16),
                       child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
                         children: [
-                          CircleAvatar(
-                            radius: 28,
-                            backgroundColor: cs.primary,
+                          Container(
+                            width: 64,
+                            height: 64,
+                            decoration: BoxDecoration(
+                              color: cs.secondaryContainer,
+                              borderRadius: BorderRadius.circular(16),
+                            ),
                             child: Builder(builder: (_) {
                               // Jika file SVG ada dan terdaftar di pubspec, tampilkan dengan tint
                               try {
-                                return SvgPicture.asset(
-                                  asset,
-                                  width: 28,
-                                  height: 28,
-                                  // gunakan 'color' (tersedia di banyak versi flutter_svg)
-                                  color: cs.onPrimary,
+                                return Center(
+                                  child: SvgPicture.asset(
+                                    asset,
+                                    width: 32,
+                                    height: 32,
+                                    // gunakan 'color' (tersedia di banyak versi flutter_svg)
+                                    color: cs.onSecondaryContainer,
+                                  ),
                                 );
                               } catch (e) {
                                 // fallback ke Icon jika asset gagal dimuat
-                                return Icon(Icons.apps, color: cs.onPrimary, size: 28);
+                                return Icon(Icons.apps, color: cs.onSecondaryContainer, size: 32);
                               }
                             }),
                           ),
-                          const SizedBox(height: 6),
-                          Flexible(
-                            child: Text(
-                              app['name']!,
-                              overflow: TextOverflow.ellipsis,
-                              style: TextStyle(color: cs.onBackground, fontSize: 12),
+                          const SizedBox(height: 8),
+                          Text(
+                            app['name']!,
+                            overflow: TextOverflow.ellipsis,
+                            style: TextStyle(
+                              color: cs.onSurface,
+                              fontSize: 13,
+                              fontWeight: FontWeight.w500,
                             ),
                           ),
                         ],
@@ -172,17 +209,22 @@ class _DashboardScreenState extends State<DashboardScreen> {
                     );
                   },
                 ),
-              ),
 
-              const SizedBox(height: 8),
-              Center(
-                child: Text(
-                  'Tap an app icon to search it on Google. Theme follows Material You colors.',
-                  style: TextStyle(color: cs.onBackground.withAlpha((0.6 * 255).round()), fontSize: 12),
-                  textAlign: TextAlign.center,
+                const SizedBox(height: 32),
+                Center(
+                  child: Text(
+                    '🎨 Dashboard menggunakan warna Material You yang Anda pilih',
+                    style: TextStyle(
+                      color: cs.onSurface.withAlpha((0.6 * 255).round()),
+                      fontSize: 12,
+                      fontStyle: FontStyle.italic,
+                    ),
+                    textAlign: TextAlign.center,
+                  ),
                 ),
-              ),
-            ],
+                const SizedBox(height: 20),
+              ],
+            ),
           ),
         ),
       ),
