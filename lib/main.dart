@@ -1,9 +1,11 @@
+// Updated main.dart: import dashboard and pass goToDashboard callback to HomeScreen
 import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:dynamic_color/dynamic_color.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'home_screen.dart';
 import 'preview_screen.dart';
+import 'dashboard_screen.dart'; // NEW
 
 void main() => runApp(const MyApp());
 
@@ -18,16 +20,9 @@ class _MyAppState extends State<MyApp> {
   Color seed = const Color(0xFF6750A4); // default seed
   bool loaded = false;
 
-  // optional override to force primary color
   Color? primaryOverride;
-
-  // theme mode toggle: true => dark, false => light
   bool isDarkMode = false;
-
-  // whether tapping a swatch/preset auto-applies as primary
   bool autoApplyOnTap = false;
-
-  // presets stored as 8-char hex strings (ARGB)
   List<String> _presets = [];
 
   @override
@@ -36,7 +31,6 @@ class _MyAppState extends State<MyApp> {
     _loadPreferences();
   }
 
-  // helper to convert Color -> ARGB32 int using new accessors (.a/.r/.g/.b)
   int _toARGB32(Color c) {
     final a = (c.a * 255.0).round() & 0xff;
     final r = (c.r * 255.0).round() & 0xff;
@@ -81,7 +75,7 @@ class _MyAppState extends State<MyApp> {
   void toggleUseDynamic() {
     setState(() {
       useDynamic = !useDynamic;
-      if (useDynamic) primaryOverride = null; // if using system dynamic, clear override
+      if (useDynamic) primaryOverride = null;
     });
     _savePreferences();
   }
@@ -90,7 +84,7 @@ class _MyAppState extends State<MyApp> {
     final rnd = Random();
     setState(() {
       seed = Color.fromARGB(0xFF, rnd.nextInt(256), rnd.nextInt(256), rnd.nextInt(256));
-      useDynamic = false; // use seed when randomizing
+      useDynamic = false;
       primaryOverride = null;
     });
     _savePreferences();
@@ -105,7 +99,6 @@ class _MyAppState extends State<MyApp> {
     _savePreferences();
   }
 
-  // apply this color as primary (force)
   void applyAsPrimary(Color c) {
     setState(() {
       primaryOverride = c;
@@ -114,7 +107,6 @@ class _MyAppState extends State<MyApp> {
     _savePreferences();
   }
 
-  // clear override
   void clearPrimaryOverride() {
     setState(() {
       primaryOverride = null;
@@ -122,7 +114,6 @@ class _MyAppState extends State<MyApp> {
     _savePreferences();
   }
 
-  // toggle light/dark (persist)
   void toggleDarkMode() {
     setState(() {
       isDarkMode = !isDarkMode;
@@ -130,7 +121,6 @@ class _MyAppState extends State<MyApp> {
     _savePreferences();
   }
 
-  // toggle auto-apply on tap
   void toggleAutoApply() {
     setState(() {
       autoApplyOnTap = !autoApplyOnTap;
@@ -138,11 +128,8 @@ class _MyAppState extends State<MyApp> {
     _savePreferences();
   }
 
-  // --- Preset management ---
-  // helper to format as 8-digit hex
   String _hexFor(Color c) => _toARGB32(c).toRadixString(16).padLeft(8, '0').toUpperCase();
 
-  // add preset (avoid duplicates)
   void addPreset(Color c) {
     final hex = _hexFor(c);
     if (!_presets.contains(hex)) {
@@ -153,7 +140,6 @@ class _MyAppState extends State<MyApp> {
     }
   }
 
-  // remove preset by hex
   void removePreset(String hex) {
     setState(() {
       _presets.remove(hex);
@@ -161,7 +147,6 @@ class _MyAppState extends State<MyApp> {
     _savePreferences();
   }
 
-  // convert stored presets to List<Color>
   List<Color> get presets => _presets.map((h) => Color(int.parse(h, radix: 16))).toList();
 
   @override
@@ -172,12 +157,8 @@ class _MyAppState extends State<MyApp> {
 
     return DynamicColorBuilder(
       builder: (ColorScheme? lightDynamic, ColorScheme? darkDynamic) {
-        final baseLight = (useDynamic && lightDynamic != null)
-            ? lightDynamic
-            : ColorScheme.fromSeed(seedColor: seed);
-        final baseDark = (useDynamic && darkDynamic != null)
-            ? darkDynamic
-            : ColorScheme.fromSeed(seedColor: seed, brightness: Brightness.dark);
+        final baseLight = (useDynamic && lightDynamic != null) ? lightDynamic : ColorScheme.fromSeed(seedColor: seed);
+        final baseDark = (useDynamic && darkDynamic != null) ? darkDynamic : ColorScheme.fromSeed(seedColor: seed, brightness: Brightness.dark);
 
         final light = primaryOverride != null ? baseLight.copyWith(primary: primaryOverride) : baseLight;
         final dark = primaryOverride != null ? baseDark.copyWith(primary: primaryOverride) : baseDark;
@@ -196,6 +177,19 @@ class _MyAppState extends State<MyApp> {
             isUsingDynamic: useDynamic,
             currentSeed: seed,
             goToPreview: () => Navigator.of(context).push(MaterialPageRoute(builder: (_) => const PreviewScreen())),
+            goToDashboard: () {
+              // debug wrapper around Navigator push so we can see logs & catch errors
+              debugPrint('>>> goToDashboard called');
+              try {
+                Navigator.of(context).push(
+                  MaterialPageRoute(builder: (_) => const DashboardScreen()),
+                );
+                debugPrint('>>> Navigator.push executed');
+              } catch (e, st) {
+                debugPrint('>>> Navigator.push error: $e');
+                debugPrint('$st');
+              }
+            },
             onClearPrimaryOverride: clearPrimaryOverride,
             isDarkMode: isDarkMode,
             onToggleDarkMode: toggleDarkMode,
